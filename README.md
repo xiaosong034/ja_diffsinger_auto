@@ -1,0 +1,2 @@
+# ja_diffsinger_auto
+中国人整合的日语diffsinger自动训练工作流
