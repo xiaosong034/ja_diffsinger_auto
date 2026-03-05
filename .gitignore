@@ -1,0 +1,19 @@
+/content/
+/cache/
+__pycache__/
+# 大文件目录
+checkpoints/
+data/binary/
+pretrain_models/
+raw_data/
+
+# 备份文件
+*.bak
+
+# 临时文件
+*.tmp
+*.log
+__pycache__/
+
+# 独立仓库
+pydomino/

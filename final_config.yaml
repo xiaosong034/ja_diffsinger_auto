@@ -1,0 +1,139 @@
+﻿base_config:
+  - configs/acoustic.yaml
+
+# ---------- 音频参数 ----------
+audio_sample_rate: 16000
+fft_size: 2048
+hop_size: 512
+win_size: 2048
+num_mels: 128
+fmin: 40
+fmax: 16000
+mel_base: e
+
+# ---------- 数据集配置 ----------
+dictionaries:
+  ja: C:/AI/ds-train-scripts/align_input/phone_dict.txt
+
+extra_phonemes: []
+merged_phoneme_groups: []
+
+datasets:
+  - raw_data_dir: C:/AI/ds-train-scripts/sofa_input/my_singer
+    speaker: my_singer
+    language: ja
+    test_prefixes:
+      - vc_1_1
+      - vc_2_2
+      - vc_3_3
+      - vc_4_4
+
+binary_data_dir: C:/AI/ds-train-scripts/binary
+
+binarization_args:
+  num_workers: 0
+
+# ---------- 数据加载进程数（优化项）----------
+ds_workers: 8
+
+# ---------- 音高/音源分离模型 ----------
+pe: parselmouth
+pe_ckpt: checkpoints/rmvpe/model.pt
+hnsep: vr
+hnsep_ckpt: checkpoints/vr/model.pt
+
+# ---------- 声码器 ----------
+vocoder: NsfHifiGAN
+vocoder_ckpt: checkpoints/pc_nsf_hifigan_44.1k_hop512_128bin_2025.02/model.ckpt
+
+# ---------- 特征开关 ----------
+use_lang_id: false
+num_lang: 1
+use_spk_id: false
+num_spk: 1
+use_energy_embed: false
+use_breathiness_embed: false
+use_voicing_embed: false
+use_tension_embed: false
+use_key_shift_embed: true
+use_speed_embed: true
+
+# ---------- 数据增强 ----------
+augmentation_args:
+  random_pitch_shifting:
+    enabled: true
+    range: [-5.0, 5.0]
+    scale: 0.75
+  fixed_pitch_shifting:
+    enabled: false
+    targets: [-5.0, 5.0]
+    scale: 0.5
+  random_time_stretching:
+    enabled: true
+    range: [0.5, 2.0]
+    scale: 0.75
+
+# ---------- 扩散模型参数 ----------
+diffusion_type: reflow
+enc_ffn_kernel_size: 3
+use_rope: true
+rope_interleaved: false
+use_shallow_diffusion: true
+T_start: 0.4
+T_start_infer: 0.4
+K_step: 300
+K_step_infer: 300
+
+# ---------- 主网络结构 ----------
+backbone_type: lynxnet
+backbone_args:
+  num_channels: 1024
+  num_layers: 6
+  kernel_size: 31
+  dropout_rate: 0.0
+  strong_cond: true
+
+# ---------- 浅层扩散辅助解码器 ----------
+shallow_diffusion_args:
+  train_aux_decoder: true
+  train_diffusion: true
+  val_gt_start: false
+  aux_decoder_arch: convnext
+  aux_decoder_args:
+    num_channels: 512
+    num_layers: 6
+    kernel_size: 7
+    dropout_rate: 0.1
+  aux_decoder_grad: 0.1
+
+lambda_aux_mel_loss: 0.2
+
+# ---------- 优化器与学习率 ----------
+optimizer_args:
+  optimizer_cls: torch.optim.AdamW
+  lr: 0.0006
+  beta1: 0.9
+  beta2: 0.98
+  weight_decay: 0
+
+lr_scheduler_args:
+  scheduler_cls: torch.optim.lr_scheduler.StepLR
+  step_size: 10000
+  gamma: 0.75
+
+# ---------- 训练批处理 ----------
+max_batch_frames: 40000
+max_batch_size: 64
+max_updates: 160000          # 建议总步数（可自行调整）
+num_valid_plots: 10
+
+# ---------- 验证与保存（优化项） ----------
+val_with_vocoder: true
+val_check_interval: 5000      # 每 5000 步验证一次
+num_ckpt_keep: 1
+permanent_ckpt_start: 50000   # 如果总步数 80000，可保持或按需调整
+permanent_ckpt_interval: 10000
+
+# ---------- 训练器配置 ----------
+pl_trainer_devices: auto
+pl_trainer_precision: 16-mixed
